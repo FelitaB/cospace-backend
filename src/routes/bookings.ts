@@ -34,6 +34,9 @@ const bookings: Booking[] = [
     },
 ];
 
+router.get("/", (_req: Request, res: Response) => {
+    res.status(200).json(bookings);
+});
 
 router.get("/:id", (req: Request, res: Response) => {
     const id = req.params.id;
