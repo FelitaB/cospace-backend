@@ -1,31 +1,27 @@
-export interface Booking {
-    id: string;
-    desk: string;
-    floor: number;
-    date: string;
-    active: boolean;
-}
+import { Booking as BookingInput } from "../schemas/booking.schema";
+
+export type Booking = BookingInput & { id: string };
 
 export class BookingRepository {
     private bookings: Booking[] = [
         {
             id: "1",
             desk: "A101",
-            floor: 1,
+            floor: "Floor 1",
             date: "2026-09-22",
             active: true,
         },
         {
             id: "2",
             desk: "B205",
-            floor: 2,
+            floor: "Floor 2",
             date: "2026-09-23",
             active: true,
         },
         {
             id: "3",
             desk: "C310",
-            floor: 3,
+            floor: "Floor 3",
             date: "2026-09-24",
             active: false,
         },
