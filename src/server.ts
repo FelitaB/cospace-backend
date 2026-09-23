@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import bookingRouter from "./routes/booking.routes";
+import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
 const port = 5000;
@@ -13,6 +14,8 @@ app.get("/", (_req: Request, res: Response) => {
         message: "CoSpace API is running",
     });
 });
+
+app.use(errorHandler);
 
 app.listen(port);
 
