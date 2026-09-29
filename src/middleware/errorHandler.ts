@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
+import { BookingNotFoundError } from "../services/booking.service";
 
 // Four parameters are required for Express to treat this as an error handler.
 export function errorHandler(err: unknown, _req: Request, res: Response, next: NextFunction): void {
@@ -15,6 +16,11 @@ export function errorHandler(err: unknown, _req: Request, res: Response, next: N
         }));
 
         res.status(400).json({ status: "error", message: "Validation failed", details: fieldErrors });
+        return;
+    }
+
+    if (err instanceof BookingNotFoundError) {
+        res.status(err.status).json({ status: "error", code: err.code, message: err.message });
         return;
     }
 

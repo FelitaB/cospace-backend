@@ -1,14 +1,41 @@
 import { Request, Response } from "express";
-import { BookingService } from "../services/booking.service";
+import { BookingNotFoundError, BookingService } from "../services/booking.service";
 import { Booking } from "../repositories/booking.repository";
+
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 10;
+const MIN_PAGE = 1;
+const MIN_LIMIT = 1;
+const MAX_LIMIT = 50;
+
+const parsePositiveInt = (value: unknown, fallback: number, min: number, max?: number): number => {
+    const raw = Array.isArray(value) ? value[0] : value;
+
+    if (typeof raw !== "string" && typeof raw !== "number") {
+        return fallback;
+    }
+
+    const parsed = parseInt(String(raw), 10);
+
+    if (Number.isNaN(parsed)) {
+        return fallback;
+    }
+
+    const clamped = Math.max(min, parsed);
+
+    return max !== undefined ? Math.min(clamped, max) : clamped;
+};
 
 export class BookingController {
     constructor(private readonly bookingService: BookingService) {}
 
-    getAll = (_req: Request, res: Response): void => {
+    getAll = (req: Request, res: Response): void => {
         try {
-            const bookings = this.bookingService.findAll();
-            res.status(200).json(bookings);
+            const page = parsePositiveInt(req.query.page, DEFAULT_PAGE, MIN_PAGE);
+            const limit = parsePositiveInt(req.query.limit, DEFAULT_LIMIT, MIN_LIMIT, MAX_LIMIT);
+
+            const result = this.bookingService.getPaginatedShifts(page, limit);
+            res.status(200).json(result);
         } catch (error) {
             const message = error instanceof Error ? error.message : "Unexpected error";
             res.status(500).json({ error: message });
@@ -67,13 +94,13 @@ export class BookingController {
             const data: Partial<Booking> = req.body;
             const updatedBooking = this.bookingService.update(id, data);
 
-            if (!updatedBooking) {
-                res.status(404).json({ error: "Booking not found" });
+            res.status(200).json(updatedBooking);
+        } catch (error) {
+            if (error instanceof BookingNotFoundError) {
+                res.status(404).json({ error: error.message });
                 return;
             }
 
-            res.status(200).json(updatedBooking);
-        } catch (error) {
             const message = error instanceof Error ? error.message : "Unexpected error";
 
             if (message.toLowerCase().includes("desk")) {
@@ -96,13 +123,13 @@ export class BookingController {
 
             const booking = this.bookingService.toggleActive(id);
 
-            if (!booking) {
-                res.status(404).json({ error: "Booking not found" });
+            res.status(200).json(booking);
+        } catch (error) {
+            if (error instanceof BookingNotFoundError) {
+                res.status(404).json({ error: error.message });
                 return;
             }
 
-            res.status(200).json(booking);
-        } catch (error) {
             const message = error instanceof Error ? error.message : "Unexpected error";
             res.status(500).json({ error: message });
         }
@@ -117,15 +144,15 @@ export class BookingController {
                 return;
             }
 
-            const deleted = this.bookingService.delete(id);
-
-            if (!deleted) {
-                res.status(404).json({ error: "Booking not found" });
-                return;
-            }
+            this.bookingService.delete(id);
 
             res.status(204).send();
         } catch (error) {
+            if (error instanceof BookingNotFoundError) {
+                res.status(404).json({ error: error.message });
+                return;
+            }
+
             const message = error instanceof Error ? error.message : "Unexpected error";
             res.status(500).json({ error: message });
         }
