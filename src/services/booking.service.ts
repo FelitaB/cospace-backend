@@ -1,12 +1,12 @@
 import { Booking, BookingRepository } from "../repositories/booking.repository";
+import { BadRequestError, NotFoundError } from "../errors";
 
-export class BookingNotFoundError extends Error {
+export class BookingNotFoundError extends NotFoundError {
     readonly code = "BOOKING_NOT_FOUND";
-    readonly status = 404;
 
     constructor(readonly bookingId: string) {
         super(`Booking with id "${bookingId}" was not found.`);
-        this.name = "BookingNotFoundError";
+        Object.setPrototypeOf(this, new.target.prototype);
     }
 }
 
@@ -57,11 +57,11 @@ export class BookingService {
 
     create(booking: Booking): Booking {
         if (!booking.desk || booking.desk.trim().length < 3) {
-            throw new Error("Desk name must be at least 3 characters long.");
+            throw new BadRequestError("Desk name must be at least 3 characters long.");
         }
 
         if (!booking.date) {
-            throw new Error("Booking date is required.");
+            throw new BadRequestError("Booking date is required.");
         }
 
         return this.bookingRepository.create(booking);
@@ -69,7 +69,7 @@ export class BookingService {
 
     update(id: string, data: Partial<Booking>): Booking {
         if (data.desk !== undefined && (!data.desk || data.desk.trim().length < 3)) {
-            throw new Error("Desk name must be at least 3 characters long.");
+            throw new BadRequestError("Desk name must be at least 3 characters long.");
         }
 
         const updated = this.bookingRepository.update(id, data);
