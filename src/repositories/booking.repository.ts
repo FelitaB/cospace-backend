@@ -25,10 +25,53 @@ export class BookingRepository {
             date: "2026-09-24",
             active: false,
         },
+        {
+            id: "4",
+            desk: "A102",
+            floor: "Floor 1",
+            date: "2026-09-25",
+            active: true,
+        },
+        {
+            id: "5",
+            desk: "B206",
+            floor: "Floor 2",
+            date: "2026-09-26",
+            active: true,
+        },
+        {
+            id: "6",
+            desk: "C311",
+            floor: "Floor 3",
+            date: "2026-09-27",
+            active: false,
+        },
+        {
+            id: "7",
+            desk: "D410",
+            floor: "Floor 4",
+            date: "2026-09-28",
+            active: true,
+        },
+        {
+            id: "8",
+            desk: "D411",
+            floor: "Floor 4",
+            date: "2026-09-29",
+            active: true,
+        },
     ];
 
     findAll(): Booking[] {
         return [...this.bookings];
+    }
+
+    findPaginated(skip: number, limit: number): Booking[] {
+        return this.bookings.slice(skip, skip + limit);
+    }
+
+    count(): number {
+        return this.bookings.length;
     }
 
     findById(id: string): Booking | undefined {
