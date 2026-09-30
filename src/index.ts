@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 import express, { Request, Response } from "express";
 import app from "./server";
 import bookingRouter from "./routes/booking.routes";

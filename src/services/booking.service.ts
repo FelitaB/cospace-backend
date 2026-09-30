@@ -1,10 +1,15 @@
-import { Booking, BookingRepository } from "../repositories/booking.repository";
+import {
+    Booking,
+    BookingRepository,
+    CreateBookingData,
+    UpdateBookingData,
+} from "../repositories/booking.repository";
 import { BadRequestError, NotFoundError } from "../errors";
 
 export class BookingNotFoundError extends NotFoundError {
     readonly code = "BOOKING_NOT_FOUND";
 
-    constructor(readonly bookingId: string) {
+    constructor(readonly bookingId: number) {
         super(`Booking with id "${bookingId}" was not found.`);
         Object.setPrototypeOf(this, new.target.prototype);
     }
@@ -25,18 +30,18 @@ export type PaginatedBookings = {
 export class BookingService {
     constructor(private readonly bookingRepository: BookingRepository) {}
 
-    findAll(): Booking[] {
+    findAll(): Promise<Booking[]> {
         return this.bookingRepository.findAll();
     }
 
-    getPaginatedShifts(page: number, limit: number): PaginatedBookings {
+    async getPaginatedShifts(page: number, limit: number): Promise<PaginatedBookings> {
         const safePage = Math.max(1, Math.floor(page) || 1);
         const safeLimit = Math.max(1, Math.floor(limit) || 1);
 
-        const total = this.bookingRepository.count();
+        const total = await this.bookingRepository.count();
         const totalPages = Math.ceil(total / safeLimit);
         const skip = (safePage - 1) * safeLimit;
-        const data = this.bookingRepository.findPaginated(skip, safeLimit);
+        const data = await this.bookingRepository.findPaginated(skip, safeLimit);
 
         return {
             data,
@@ -51,28 +56,24 @@ export class BookingService {
         };
     }
 
-    findById(id: string): Booking | undefined {
+    findById(id: number): Promise<Booking | null> {
         return this.bookingRepository.findById(id);
     }
 
-    create(booking: Booking): Booking {
-        if (!booking.desk || booking.desk.trim().length < 3) {
-            throw new BadRequestError("Desk name must be at least 3 characters long.");
+    create(booking: CreateBookingData): Promise<Booking> {
+        if (!booking.user_id || !booking.desk_id) {
+            throw new BadRequestError("Both user_id and desk_id are required.");
         }
 
-        if (!booking.date) {
+        if (!booking.booking_date) {
             throw new BadRequestError("Booking date is required.");
         }
 
         return this.bookingRepository.create(booking);
     }
 
-    update(id: string, data: Partial<Booking>): Booking {
-        if (data.desk !== undefined && (!data.desk || data.desk.trim().length < 3)) {
-            throw new BadRequestError("Desk name must be at least 3 characters long.");
-        }
-
-        const updated = this.bookingRepository.update(id, data);
+    async update(id: number, data: UpdateBookingData): Promise<Booking> {
+        const updated = await this.bookingRepository.update(id, data);
 
         if (!updated) {
             throw new BookingNotFoundError(id);
@@ -81,8 +82,8 @@ export class BookingService {
         return updated;
     }
 
-    toggleActive(id: string): Booking {
-        const booking = this.bookingRepository.findById(id);
+    async toggleActive(id: number): Promise<Booking> {
+        const booking = await this.bookingRepository.findById(id);
 
         if (!booking) {
             throw new BookingNotFoundError(id);
@@ -91,8 +92,8 @@ export class BookingService {
         return this.update(id, { active: !booking.active });
     }
 
-    delete(id: string): void {
-        const deleted = this.bookingRepository.delete(id);
+    async delete(id: number): Promise<void> {
+        const deleted = await this.bookingRepository.delete(id);
 
         if (!deleted) {
             throw new BookingNotFoundError(id);

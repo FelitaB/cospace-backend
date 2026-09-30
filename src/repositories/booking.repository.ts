@@ -1,115 +1,61 @@
-import { Booking as BookingInput } from "../schemas/booking.schema";
+import { Prisma, type Booking } from "../generated/prisma/client";
+import { prisma } from "../utils/db";
 
-export type Booking = BookingInput & { id: string };
+export type { Booking };
+export type CreateBookingData = Prisma.BookingUncheckedCreateInput;
+export type UpdateBookingData = Prisma.BookingUncheckedUpdateInput;
+
+// Prisma throws P2025 when an update/delete targets a row that does not exist.
+const isRecordNotFound = (error: unknown): boolean =>
+    error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025";
 
 export class BookingRepository {
-    private bookings: Booking[] = [
-        {
-            id: "1",
-            desk: "A101",
-            floor: "Floor 1",
-            date: "2026-09-22",
-            active: true,
-        },
-        {
-            id: "2",
-            desk: "B205",
-            floor: "Floor 2",
-            date: "2026-09-23",
-            active: true,
-        },
-        {
-            id: "3",
-            desk: "C310",
-            floor: "Floor 3",
-            date: "2026-09-24",
-            active: false,
-        },
-        {
-            id: "4",
-            desk: "A102",
-            floor: "Floor 1",
-            date: "2026-09-25",
-            active: true,
-        },
-        {
-            id: "5",
-            desk: "B206",
-            floor: "Floor 2",
-            date: "2026-09-26",
-            active: true,
-        },
-        {
-            id: "6",
-            desk: "C311",
-            floor: "Floor 3",
-            date: "2026-09-27",
-            active: false,
-        },
-        {
-            id: "7",
-            desk: "D410",
-            floor: "Floor 4",
-            date: "2026-09-28",
-            active: true,
-        },
-        {
-            id: "8",
-            desk: "D411",
-            floor: "Floor 4",
-            date: "2026-09-29",
-            active: true,
-        },
-    ];
-
-    findAll(): Booking[] {
-        return [...this.bookings];
+    findAll(): Promise<Booking[]> {
+        return prisma.booking.findMany({ orderBy: { id: "asc" } });
     }
 
-    findPaginated(skip: number, limit: number): Booking[] {
-        return this.bookings.slice(skip, skip + limit);
+    findPaginated(skip: number, limit: number): Promise<Booking[]> {
+        return prisma.booking.findMany({
+            skip,
+            take: limit,
+            orderBy: { id: "asc" },
+        });
     }
 
-    count(): number {
-        return this.bookings.length;
+    count(): Promise<number> {
+        return prisma.booking.count();
     }
 
-    findById(id: string): Booking | undefined {
-        return this.bookings.find((booking) => booking.id === id);
+    findById(id: number): Promise<Booking | null> {
+        return prisma.booking.findUnique({ where: { id } });
     }
 
-    create(booking: Booking): Booking {
-        this.bookings.push(booking);
-        return booking;
+    create(data: CreateBookingData): Promise<Booking> {
+        return prisma.booking.create({ data });
     }
 
-    update(id: string, data: Partial<Booking>): Booking | undefined {
-        const index = this.bookings.findIndex((booking) => booking.id === id);
-        const existing = this.bookings[index];
+    async update(id: number, data: UpdateBookingData): Promise<Booking | null> {
+        try {
+            return await prisma.booking.update({ where: { id }, data });
+        } catch (error) {
+            if (isRecordNotFound(error)) {
+                return null;
+            }
 
-        if (index === -1 || !existing) {
-            return undefined;
+            throw error;
         }
-
-        const updated: Booking = {
-            ...existing,
-            ...data,
-            id,
-        };
-
-        this.bookings[index] = updated;
-
-        return updated;
     }
 
-    delete(id: string): boolean {
-        const index = this.bookings.findIndex((booking) => booking.id === id);
+    async delete(id: number): Promise<boolean> {
+        try {
+            await prisma.booking.delete({ where: { id } });
+            return true;
+        } catch (error) {
+            if (isRecordNotFound(error)) {
+                return false;
+            }
 
-        if (index === -1) {
-            return false;
+            throw error;
         }
-
-        this.bookings.splice(index, 1);
-        return true;
     }
 }
