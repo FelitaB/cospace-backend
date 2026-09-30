@@ -9,7 +9,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts"
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "db:down": "prisma db execute --file prisma/migrations/20260930105731_init_users_and_bookings/down.sql",
+    "db:up": "prisma migrate deploy",
+    "db:redo": "npm run db:down && npm run db:up && prisma migrate status"
   },
   "repository": {
     "type": "git",
