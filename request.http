@@ -11,7 +11,10 @@ GET http://localhost:5000/bookings?page=2&limit=2
  
 ### get one booking paginated
 GET http://localhost:5000/bookings?page=1&limit=999
- 
+
+### throw bad request error
+GET http://localhost:5000/error
+
 ### throw application error
 GET  http://localhost:5000/boom-app-error
  
@@ -23,7 +26,7 @@ POST http://localhost:5000/bookings
 Content-Type: application/json
 Authorization: super-secret-key
  
-{"desk_id": 1, "booking_date": "2026-09-29", "active": true}
+{"desk_id": 1 , "booking_date": "2026-09-29", "active": true}
  
 ### create booking
 PUT http://localhost:5000/bookings/102 HTTP/1.1
