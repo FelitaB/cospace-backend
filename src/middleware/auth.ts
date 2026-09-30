@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import { HttpStatus } from "../constants/httpStatus";
 
 // Demo credential only - move to a secret store / env var before deploying.
 const API_TOKEN = process.env.API_TOKEN ?? "super-secret-key";
@@ -7,7 +8,7 @@ export function auth(req: Request, res: Response, next: NextFunction): void {
     const header = req.headers.authorization;
 
     if (!header) {
-        res.status(401).json({
+        res.status(HttpStatus.UNAUTHORIZED).json({
             status: "error",
             message: "Missing Authorization header",
         });
@@ -18,7 +19,7 @@ export function auth(req: Request, res: Response, next: NextFunction): void {
     const token = header.startsWith("Bearer ") ? header.slice(7).trim() : header.trim();
 
     if (token !== API_TOKEN) {
-        res.status(401).json({
+        res.status(HttpStatus.UNAUTHORIZED).json({
             status: "error",
             message: "Unauthorized",
         });
