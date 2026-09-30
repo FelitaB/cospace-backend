@@ -13,8 +13,8 @@ const bookingController = new BookingController(bookingService);
 
 router.get("/", bookingController.getAll);
 router.get("/:id", bookingController.getById);
-router.post("/", auth, validate(["desk", "floor", "date"]), bookingController.create);
-router.put("/:id", auth, validate(["desk", "floor", "date"]), bookingController.update);
+router.post("/", auth, validate(["user_id", "desk_id", "booking_date"]), bookingController.create);
+router.put("/:id", auth, validate(["user_id", "desk_id", "booking_date"]), bookingController.update);
 router.patch("/:id", auth, bookingController.toggleActive);
 router.delete("/:id", auth, bookingController.delete);
 
