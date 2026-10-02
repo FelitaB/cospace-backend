@@ -2,7 +2,7 @@ import { Prisma, type Booking } from "../generated/prisma/client";
 import { prisma } from "../utils/db";
 
 export type { Booking };
-export type CreateBookingData = Prisma.BookingUncheckedCreateInput;
+export type CreateBookingData = Pick<Prisma.BookingUncheckedCreateInput, "desk_id" | "booking_date" | "active">;
 export type UpdateBookingData = Prisma.BookingUncheckedUpdateInput;
 
 // Prisma throws P2025 when an update/delete targets a row that does not exist.
@@ -30,8 +30,15 @@ export class BookingRepository {
         return prisma.booking.findUnique({ where: { id } });
     }
 
-    create(data: CreateBookingData): Promise<Booking> {
-        return prisma.booking.create({ data });
+    create(userId: number, data: CreateBookingData): Promise<Booking> {
+        return prisma.booking.create({
+            data: {
+                booking_date: data.booking_date,
+                ...(data.active === undefined ? {} : { active: data.active }),
+                desk: { connect: { id: data.desk_id } },
+                createdBy: { connect: { id: userId } },
+            },
+        });
     }
 
     async update(id: number, data: UpdateBookingData): Promise<Booking | null> {

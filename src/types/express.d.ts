@@ -1,14 +1,10 @@
 import "express";
+import type { TokenPayload } from "../utils/auth";
 
 declare global {
     namespace Express {
-        interface AuthUser {
-            id: string;
-            role: string;
-        }
-
         interface Request {
-            user?: AuthUser;
+            user?: TokenPayload;
         }
     }
 }

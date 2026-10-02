@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { BookingService } from "../services/booking.service";
 import { CreateBookingData, UpdateBookingData } from "../repositories/booking.repository";
-import { BadRequestError, NotFoundError } from "../errors";
+import { BadRequestError, NotFoundError, UnauthorizedError } from "../errors";
 import { HttpStatus } from "../constants/httpStatus";
 
 const DEFAULT_PAGE = 1;
@@ -71,8 +71,14 @@ export class BookingController {
 
     create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
+            const userId = req.user?.userId;
+
+            if (userId === undefined) {
+                throw new UnauthorizedError("Authentication required");
+            }
+
             const booking: CreateBookingData = req.body;
-            const createdBooking = await this.bookingService.create(booking);
+            const createdBooking = await this.bookingService.create(userId, booking);
             res.status(HttpStatus.CREATED).json(createdBooking);
         } catch (err) {
             next(err);

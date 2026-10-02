@@ -60,16 +60,16 @@ export class BookingService {
         return this.bookingRepository.findById(id);
     }
 
-    create(booking: CreateBookingData): Promise<Booking> {
-        if (!booking.user_id || !booking.desk_id) {
-            throw new BadRequestError("Both user_id and desk_id are required.");
+    create(userId: number, booking: CreateBookingData): Promise<Booking> {
+        if (!userId || !booking.desk_id) {
+            throw new BadRequestError("Authenticated user and desk_id are required.");
         }
 
         if (!booking.booking_date) {
             throw new BadRequestError("Booking date is required.");
         }
 
-        return this.bookingRepository.create(booking);
+        return this.bookingRepository.create(userId, booking);
     }
 
     async update(id: number, data: UpdateBookingData): Promise<Booking> {

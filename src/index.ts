@@ -3,6 +3,7 @@ require('dotenv').config();
 import express, { Request, Response } from "express";
 import app from "./server";
 import bookingRouter from "./routes/booking.routes";
+import authRouter from "./routes/auth.routes";
 import logger from "./middleware/logger";
 import errorHandler from "./middleware/errorHandler";
 import { HttpStatus } from "./constants/httpStatus";
@@ -20,6 +21,7 @@ app.get("/", (_req: Request, res: Response) => {
     });
 });
 
+app.use("/auth", authRouter);
 app.use("/bookings", bookingRouter);
 
 app.get("/error", (_req: Request, res: Response) => {
